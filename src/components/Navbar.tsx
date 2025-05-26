@@ -29,7 +29,7 @@ const Navbar = () => {
           <div className="w-px h-6 bg-gray-200 mx-2"></div>
           
           <Link 
-            to="/auth" 
+            to="/Connexion" 
             className="bg-gradient-to-r from-green-600 to-green-700 text-white px-5 py-2 rounded-full hover:from-green-700 hover:to-green-800 transition-all shadow-sm hover:shadow-md font-medium"
           >
             Connexion
