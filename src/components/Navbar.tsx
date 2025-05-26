@@ -1,15 +1,35 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X } from "lucide-react";
+import { supabase } from "../lib/supabaseClient";
+import type { Session } from "@supabase/supabase-js";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
+
+  useEffect(() => {
+    const getSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session);
+    };
+
+    getSession();
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+    });
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
 
   return (
     <nav className="bg-white/90 backdrop-blur-sm border-b border-gray-100 shadow-sm px-4 py-3 fixed w-full top-0 left-0 z-50">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <Link 
-          to="/" 
+        <Link
+          to="/"
           className="flex items-center text-2xl font-bold text-green-700 hover:text-green-800 transition-colors"
         >
           <span className="mr-2">🔬</span>
@@ -22,22 +42,39 @@ const Navbar = () => {
         <div className="hidden md:flex items-center space-x-1">
           <NavLink to="/">Accueil</NavLink>
           <NavLink to="/apropos">À propos</NavLink>
-          <NavLink to="/simulations">Simulation</NavLink>
-          <NavLink to="/visualisation">Visualisation 3D</NavLink>
+
+          {session && (
+            <>
+              <NavLink to="/simulations">Simulation</NavLink>
+              <NavLink to="/visualisation">Visualisation 3D</NavLink>
+            </>
+          )}
+
           <NavLink to="/contact">Contact</NavLink>
-          
+
           <div className="w-px h-6 bg-gray-200 mx-2"></div>
-          
-          <Link 
-            to="/Connexion" 
-            className="bg-gradient-to-r from-green-600 to-green-700 text-white px-5 py-2 rounded-full hover:from-green-700 hover:to-green-800 transition-all shadow-sm hover:shadow-md font-medium"
-          >
-            Connexion
-          </Link>
+
+          {!session ? (
+            <Link
+              to="/connexion"
+              className="bg-gradient-to-r from-green-600 to-green-700 text-white px-5 py-2 rounded-full hover:from-green-700 hover:to-green-800 transition-all shadow-sm hover:shadow-md font-medium"
+            >
+              Connexion
+            </Link>
+          ) : (
+            <button
+              onClick={async () => {
+                await supabase.auth.signOut();
+              }}
+              className="bg-red-100 text-red-600 px-4 py-2 rounded-full hover:bg-red-200 transition"
+            >
+              Déconnexion
+            </button>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
-        <button 
+        <button
           className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
           onClick={() => setIsOpen(!isOpen)}
           aria-label="Menu"
@@ -55,18 +92,36 @@ const Navbar = () => {
         <div className="md:hidden bg-white/95 mt-2 py-3 px-4 space-y-3 rounded-lg shadow-xl mx-4 border border-gray-100">
           <MobileNavLink to="/" onClick={() => setIsOpen(false)}>Accueil</MobileNavLink>
           <MobileNavLink to="/a-propos" onClick={() => setIsOpen(false)}>À propos</MobileNavLink>
-          <MobileNavLink to="/simulations" onClick={() => setIsOpen(false)}>Simulations</MobileNavLink>
-          <MobileNavLink to="/visualisation" onClick={() => setIsOpen(false)}>Visualisation 3D</MobileNavLink>
+
+          {session && (
+            <>
+              <MobileNavLink to="/simulations" onClick={() => setIsOpen(false)}>Simulations</MobileNavLink>
+              <MobileNavLink to="/visualisation" onClick={() => setIsOpen(false)}>Visualisation 3D</MobileNavLink>
+            </>
+          )}
+
           <MobileNavLink to="/contact" onClick={() => setIsOpen(false)}>Contact</MobileNavLink>
-          
+
           <div className="pt-2">
-            <Link 
-              to="/auth" 
-              className="inline-block w-full text-center bg-gradient-to-r from-green-600 to-green-700 text-white px-5 py-2.5 rounded-full font-medium"
-              onClick={() => setIsOpen(false)}
-            >
-              Connexion
-            </Link>
+            {!session ? (
+              <Link
+                to="/connexion"
+                className="inline-block w-full text-center bg-gradient-to-r from-green-600 to-green-700 text-white px-5 py-2.5 rounded-full font-medium"
+                onClick={() => setIsOpen(false)}
+              >
+                Connexion
+              </Link>
+            ) : (
+              <button
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  setIsOpen(false);
+                }}
+                className="w-full text-center text-red-600 bg-red-100 px-5 py-2.5 rounded-full hover:bg-red-200 font-medium"
+              >
+                Déconnexion
+              </button>
+            )}
           </div>
         </div>
       )}
