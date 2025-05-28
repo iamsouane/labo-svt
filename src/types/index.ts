@@ -87,3 +87,28 @@ export interface SimulationClasse {
   classe_id: number;
   created_at?: string;
 }
+
+// ====================
+// ActivityLog
+// ====================
+
+export interface ActivityLog {
+  date: string;
+  count: number;
+  type_activite: 'connexions' | 'simulations' | 'inscriptions';
+}
+
+export interface DailyStats {
+  date: string;
+  connexions: number;
+  simulations: number;
+  inscriptions: number;
+}
+
+export interface RecentActivity {
+  type: 'simulation' | 'inscription';
+  id: number;
+  description: string;
+  utilisateur: string;
+  created_at: string;
+}
