@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import type { Session } from "@supabase/supabase-js";
@@ -7,17 +7,45 @@ import type { Session } from "@supabase/supabase-js";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
+  const [role, setRole] = useState<"ADMIN" | "PROFESSEUR" | "ELEVE" | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const getSession = async () => {
+    const getSessionAndRole = async () => {
       const { data } = await supabase.auth.getSession();
       setSession(data.session);
+
+      if (data.session?.user) {
+        const { data: userData, error } = await supabase
+          .from("utilisateur")
+          .select("role")
+          .eq("id", data.session.user.id)
+          .single();
+
+        if (!error && userData) {
+          setRole(userData.role);
+        }
+      }
     };
 
-    getSession();
+    getSessionAndRole();
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
+      if (newSession?.user) {
+        supabase
+          .from("utilisateur")
+          .select("role")
+          .eq("id", newSession.user.id)
+          .single()
+          .then(({ data: userData, error }) => {
+            if (!error && userData) {
+              setRole(userData.role);
+            }
+          });
+      } else {
+        setRole(null);
+      }
     });
 
     return () => {
@@ -25,11 +53,30 @@ const Navbar = () => {
     };
   }, []);
 
+  const getHomePath = () => {
+    if (!session || !role) return "/";
+    switch (role) {
+      case "ADMIN":
+        return "/admin/dashboard";
+      case "PROFESSEUR":
+        return "/prof";
+      case "ELEVE":
+        return "/eleve";
+      default:
+        return "/";
+    }
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate("/connexion");
+  };
+
   return (
     <nav className="bg-white/90 backdrop-blur-sm border-b border-gray-100 shadow-sm px-4 py-3 fixed w-full top-0 left-0 z-50">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <Link
-          to="/"
+          to={getHomePath()}
           className="flex items-center text-2xl font-bold text-green-700 hover:text-green-800 transition-colors"
         >
           <span className="mr-2">🔬</span>
@@ -40,12 +87,12 @@ const Navbar = () => {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center space-x-1">
-          <NavLink to="/">Accueil</NavLink>
+          <NavLink to={getHomePath()}>Accueil</NavLink>
           <NavLink to="/apropos">À propos</NavLink>
 
           {session && (
             <>
-              <NavLink to="/simulations">Simulation</NavLink>
+              <NavLink to="/simulations">Simulations</NavLink>
               <NavLink to="/visualisation">Visualisation 3D</NavLink>
             </>
           )}
@@ -63,9 +110,7 @@ const Navbar = () => {
             </Link>
           ) : (
             <button
-              onClick={async () => {
-                await supabase.auth.signOut();
-              }}
+              onClick={handleSignOut}
               className="bg-red-100 text-red-600 px-4 py-2 rounded-full hover:bg-red-200 transition"
             >
               Déconnexion
@@ -90,7 +135,7 @@ const Navbar = () => {
       {/* Mobile Dropdown */}
       {isOpen && (
         <div className="md:hidden bg-white/95 mt-2 py-3 px-4 space-y-3 rounded-lg shadow-xl mx-4 border border-gray-100">
-          <MobileNavLink to="/" onClick={() => setIsOpen(false)}>Accueil</MobileNavLink>
+          <MobileNavLink to={getHomePath()} onClick={() => setIsOpen(false)}>Accueil</MobileNavLink>
           <MobileNavLink to="/a-propos" onClick={() => setIsOpen(false)}>À propos</MobileNavLink>
 
           {session && (
@@ -113,9 +158,9 @@ const Navbar = () => {
               </Link>
             ) : (
               <button
-                onClick={async () => {
-                  await supabase.auth.signOut();
+                onClick={() => {
                   setIsOpen(false);
+                  handleSignOut();
                 }}
                 className="w-full text-center text-red-600 bg-red-100 px-5 py-2.5 rounded-full hover:bg-red-200 font-medium"
               >
@@ -129,7 +174,7 @@ const Navbar = () => {
   );
 };
 
-// Composant pour les liens desktop
+// Desktop NavLink
 const NavLink = ({ to, children }: { to: string; children: React.ReactNode }) => (
   <Link
     to={to}
@@ -139,8 +184,16 @@ const NavLink = ({ to, children }: { to: string; children: React.ReactNode }) =>
   </Link>
 );
 
-// Composant pour les liens mobile
-const MobileNavLink = ({ to, children, onClick }: { to: string; children: React.ReactNode; onClick: () => void }) => (
+// Mobile NavLink
+const MobileNavLink = ({
+  to,
+  children,
+  onClick,
+}: {
+  to: string;
+  children: React.ReactNode;
+  onClick: () => void;
+}) => (
   <Link
     to={to}
     onClick={onClick}
