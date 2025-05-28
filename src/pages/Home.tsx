@@ -4,10 +4,10 @@ import SectionFeatures from "../components/SectionFeatures";
 
 const Home: React.FC = () => {
   return (
-    <main className="min-h-screen">
+    <>
       <Header />
       <SectionFeatures />
-    </main>
+    </>
   );
 };
 
