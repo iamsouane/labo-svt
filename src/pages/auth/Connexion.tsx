@@ -27,20 +27,22 @@ const Connexion = () => {
         throw error || new Error("Erreur lors de la connexion");
       }
 
-      const userId = authData.user.id;
+      // 2. Enregistrement de la connexion dans les logs
+      const { error: logError } = await supabase.rpc('log_connection');
+      if (logError) throw logError;
 
-      // 2. Récupération des infos supplémentaires
+      // 3. Récupération des infos utilisateur
       const { data: utilisateur, error: userError } = await supabase
         .from("utilisateur")
         .select("role")
-        .eq("id", userId)
+        .eq("id", authData.user.id)
         .single();
 
       if (userError || !utilisateur) {
         throw new Error("Impossible de récupérer les informations utilisateur");
       }
 
-      // 3. Redirection selon le rôle
+      // 4. Redirection selon le rôle
       switch (utilisateur.role) {
         case "ADMIN":
           navigate("/admin/dashboard");
@@ -62,14 +64,27 @@ const Connexion = () => {
   };
 
   const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    setErreur("");
+    
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
       });
       
       if (error) throw error;
-    } catch (error) {
-      setErreur("Erreur lors de la connexion avec Google");
+
+      // Enregistrement de la connexion Google
+      const { error: logError } = await supabase.rpc('log_connection');
+      if (logError) throw logError;
+
+    } catch (error: any) {
+      setErreur(error.message || "Erreur lors de la connexion avec Google");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -122,7 +137,10 @@ const Connexion = () => {
 
             {/* Forgot Password */}
             <div className="text-right">
-              <a href="/mot-de-passe-oublie" className="text-sm text-green-600 hover:text-green-800 hover:underline">
+              <a 
+                href="/mot-de-passe-oublie" 
+                className="text-sm text-green-600 hover:text-green-800 hover:underline"
+              >
                 Mot de passe oublié ?
               </a>
             </div>
@@ -140,11 +158,23 @@ const Connexion = () => {
               {isLoading ? 'Connexion en cours...' : 'Se connecter'}
             </button>
 
+            {/* Divider */}
+            <div className="flex items-center">
+              <div className="flex-grow border-t border-gray-300"></div>
+              <span className="mx-4 text-gray-500">ou</span>
+              <div className="flex-grow border-t border-gray-300"></div>
+            </div>
+
             {/* Google Login */}
             <button
               type="button"
               onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center px-4 py-3 rounded-lg shadow-sm border border-gray-300 bg-white text-gray-700 font-medium hover:bg-gray-50 transition-all duration-300"
+              disabled={isLoading}
+              className={`w-full flex items-center justify-center px-4 py-3 rounded-lg shadow-sm border font-medium transition-all duration-300 ${
+                isLoading
+                  ? 'border-gray-300 bg-gray-100 text-gray-400'
+                  : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+              }`}
             >
               <FcGoogle className="mr-2 text-lg" />
               Continuer avec Google
@@ -162,7 +192,10 @@ const Connexion = () => {
           <div className="px-6 py-4 bg-gray-50 text-center border-t border-gray-100">
             <p className="text-sm text-gray-600">
               Pas encore de compte ?{' '}
-              <a href="/inscription" className="text-green-600 hover:text-green-800 font-medium flex items-center justify-center">
+              <a 
+                href="/inscription" 
+                className="text-green-600 hover:text-green-800 font-medium flex items-center justify-center"
+              >
                 <FaUserPlus className="mr-1" />
                 S'inscrire
               </a>

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { RoleValues } from "../../types";
-import { FaUser, FaEnvelope, FaLock, FaChalkboardTeacher, FaUserGraduate, FaUserShield, FaCheck } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import { FaUser, FaEnvelope, FaLock, FaChalkboardTeacher, FaUserGraduate, FaUserShield, FaCheck, FaSignInAlt } from "react-icons/fa";
 
 const Inscription = () => {
   const [form, setForm] = useState({
@@ -15,6 +16,7 @@ const Inscription = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -33,6 +35,12 @@ const Inscription = () => {
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            nom,
+            prenom
+          }
+        }
       });
 
       if (signUpError || !signUpData.user) {
@@ -51,7 +59,20 @@ const Inscription = () => {
         throw insertError;
       }
 
+      // 3. Enregistrer l'inscription dans les logs d'activité
+      const { error: logError } = await supabase.rpc('increment_activity_log', {
+        p_type_activite: 'inscriptions'
+      });
+
+      if (logError) throw logError;
+
       setSuccess(true);
+      
+      // Redirection automatique après 3 secondes
+      setTimeout(() => {
+        navigate('/connexion');
+      }, 3000);
+
     } catch (error: any) {
       setError(error.message || "Une erreur est survenue");
     } finally {
@@ -66,7 +87,10 @@ const Inscription = () => {
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
           {/* Header */}
           <div className="bg-gradient-to-r from-green-600 to-green-800 p-6 text-center">
-            <h2 className="text-2xl font-bold text-white">Créer un compte</h2>
+            <h2 className="text-2xl font-bold text-white flex items-center justify-center">
+              <FaUser className="mr-2" />
+              Créer un compte
+            </h2>
             <p className="text-green-100 mt-1">Rejoignez notre plateforme éducative</p>
           </div>
 
@@ -82,6 +106,7 @@ const Inscription = () => {
                   type="text"
                   name="prenom"
                   placeholder="Prénom"
+                  value={form.prenom}
                   onChange={handleChange}
                   required
                   className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
@@ -92,6 +117,7 @@ const Inscription = () => {
                   type="text"
                   name="nom"
                   placeholder="Nom"
+                  value={form.nom}
                   onChange={handleChange}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
@@ -108,6 +134,7 @@ const Inscription = () => {
                 type="email"
                 name="email"
                 placeholder="Adresse email"
+                value={form.email}
                 onChange={handleChange}
                 required
                 className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
@@ -122,7 +149,8 @@ const Inscription = () => {
               <input
                 type="password"
                 name="password"
-                placeholder="Mot de passe"
+                placeholder="Mot de passe (6 caractères min)"
+                value={form.password}
                 onChange={handleChange}
                 required
                 minLength={6}
@@ -138,13 +166,13 @@ const Inscription = () => {
                 value={form.role}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 appearance-none"
               >
-                <option value={RoleValues.ELEVE} className="flex items-center">
+                <option value={RoleValues.ELEVE}>
                   <FaUserGraduate className="inline mr-2" /> Élève
                 </option>
-                <option value={RoleValues.PROFESSEUR} className="flex items-center">
+                <option value={RoleValues.PROFESSEUR}>
                   <FaChalkboardTeacher className="inline mr-2" /> Professeur
                 </option>
-                <option value={RoleValues.ADMIN} className="flex items-center">
+                <option value={RoleValues.ADMIN}>
                   <FaUserShield className="inline mr-2" /> Administrateur
                 </option>
               </select>
@@ -166,7 +194,7 @@ const Inscription = () => {
               } transition-all duration-300`}
             >
               {isLoading ? (
-                'Chargement...'
+                'Création du compte...'
               ) : (
                 <>
                   <FaCheck className="mr-2" />
@@ -184,7 +212,8 @@ const Inscription = () => {
 
             {success && (
               <div className="p-3 bg-green-50 text-green-700 rounded-lg border border-green-200">
-                Compte créé avec succès ! Veuillez vérifier votre email pour confirmer votre compte.
+                <p>Compte créé avec succès !</p>
+                <p className="mt-1 text-sm">Vous allez être redirigé vers la page de connexion...</p>
               </div>
             )}
           </form>
@@ -193,7 +222,11 @@ const Inscription = () => {
           <div className="px-6 py-4 bg-gray-50 text-center border-t border-gray-100">
             <p className="text-sm text-gray-600">
               Déjà un compte ?{' '}
-              <a href="/connexion" className="text-green-600 hover:text-green-800 font-medium">
+              <a 
+                href="/connexion" 
+                className="text-green-600 hover:text-green-800 font-medium flex items-center justify-center"
+              >
+                <FaSignInAlt className="mr-1" />
                 Se connecter
               </a>
             </p>
