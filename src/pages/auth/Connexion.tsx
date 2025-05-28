@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
-import { FaSignInAlt, FaEnvelope, FaLock, FaUserPlus } from "react-icons/fa";
+import { FaSignInAlt, FaEnvelope, FaLock, FaUserPlus, FaArrowLeft } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 
 const Connexion = () => {
@@ -17,7 +17,6 @@ const Connexion = () => {
     setErreur("");
 
     try {
-      // 1. Connexion à Supabase Auth
       const { data: authData, error } = await supabase.auth.signInWithPassword({
         email,
         password: motDePasse,
@@ -27,11 +26,9 @@ const Connexion = () => {
         throw error || new Error("Erreur lors de la connexion");
       }
 
-      // 2. Enregistrement de la connexion dans les logs
       const { error: logError } = await supabase.rpc('log_connection');
       if (logError) throw logError;
 
-      // 3. Récupération des infos utilisateur
       const { data: utilisateur, error: userError } = await supabase
         .from("utilisateur")
         .select("role")
@@ -42,7 +39,6 @@ const Connexion = () => {
         throw new Error("Impossible de récupérer les informations utilisateur");
       }
 
-      // 4. Redirection selon le rôle
       switch (utilisateur.role) {
         case "ADMIN":
           navigate("/admin/dashboard");
@@ -77,7 +73,6 @@ const Connexion = () => {
       
       if (error) throw error;
 
-      // Enregistrement de la connexion Google
       const { error: logError } = await supabase.rpc('log_connection');
       if (logError) throw logError;
 
@@ -89,8 +84,19 @@ const Connexion = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-green-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="fixed inset-0 bg-gradient-to-b from-white to-green-50 flex flex-col items-center justify-center p-4 overflow-hidden">
+      <div className="w-full max-w-md mx-auto">
+        {/* Bouton Retour centré */}
+        <div className="flex justify-center mb-4">
+          <button 
+            onClick={() => navigate(-1)}
+            className="flex items-center text-green-600 hover:text-green-800 transition-colors"
+          >
+            <FaArrowLeft className="mr-2" />
+            Retour
+          </button>
+        </div>
+
         {/* Card Container */}
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
           {/* Header */}

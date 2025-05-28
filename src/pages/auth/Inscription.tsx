@@ -2,7 +2,7 @@ import { useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { RoleValues } from "../../types";
 import { useNavigate } from "react-router-dom";
-import { FaUser, FaEnvelope, FaLock, FaChalkboardTeacher, FaUserGraduate, FaUserShield, FaCheck, FaSignInAlt } from "react-icons/fa";
+import { FaUser, FaEnvelope, FaLock, FaChalkboardTeacher, FaUserGraduate, FaUserShield, FaCheck, FaSignInAlt, FaArrowLeft } from "react-icons/fa";
 
 const Inscription = () => {
   const [form, setForm] = useState({
@@ -81,8 +81,19 @@ const Inscription = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-green-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="fixed inset-0 bg-gradient-to-b from-white to-green-50 flex flex-col items-center justify-center p-4 overflow-hidden">
+      <div className="w-full max-w-md mx-auto">
+        {/* Bouton Retour centré */}
+        <div className="flex justify-center mb-4">
+          <button 
+            onClick={() => navigate(-1)}
+            className="flex items-center text-green-600 hover:text-green-800 transition-colors"
+          >
+            <FaArrowLeft className="mr-2" />
+            Retour
+          </button>
+        </div>
+
         {/* Card Container */}
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
           {/* Header */}
