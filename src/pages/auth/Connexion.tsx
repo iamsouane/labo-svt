@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { FaSignInAlt, FaEnvelope, FaLock, FaUserPlus, FaArrowLeft } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 
@@ -10,6 +10,15 @@ const Connexion = () => {
   const [erreur, setErreur] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleBack = () => {
+    if (location.state?.fromAdmin || !document.referrer) {
+      navigate('/', { replace: true });
+    } else {
+      navigate(-1);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,23 +48,26 @@ const Connexion = () => {
         throw new Error("Impossible de récupérer les informations utilisateur");
       }
 
-      switch (utilisateur.role) {
-        case "ADMIN":
-          navigate("/admin/dashboard");
-          break;
-        case "PROFESSEUR":
-          navigate("/professeur/dashboard");
-          break;
-        case "ELEVE":
-          navigate("/eleve/dashboard");
-          break;
-        default:
-          throw new Error("Rôle inconnu");
-      }
+      const from = location.state?.from || getDashboardPath(utilisateur.role);
+      navigate(from, { replace: true });
+
     } catch (error: any) {
       setErreur(error.message || "Une erreur est survenue");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const getDashboardPath = (role: string) => {
+    switch (role) {
+      case "ADMIN":
+        return "/admin/dashboard";
+      case "PROFESSEUR":
+        return "/professeur/dashboard";
+      case "ELEVE":
+        return "/eleve/dashboard";
+      default:
+        return "/";
     }
   };
 
@@ -86,10 +98,9 @@ const Connexion = () => {
   return (
     <div className="fixed inset-0 bg-gradient-to-b from-white to-green-50 flex flex-col items-center justify-center p-4 overflow-hidden">
       <div className="w-full max-w-md mx-auto">
-        {/* Bouton Retour centré */}
         <div className="flex justify-center mb-4">
           <button 
-            onClick={() => navigate(-1)}
+            onClick={handleBack}
             className="flex items-center text-green-600 hover:text-green-800 transition-colors"
           >
             <FaArrowLeft className="mr-2" />
@@ -97,9 +108,7 @@ const Connexion = () => {
           </button>
         </div>
 
-        {/* Card Container */}
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-          {/* Header */}
           <div className="bg-gradient-to-r from-green-600 to-green-800 p-6 text-center">
             <h2 className="text-2xl font-bold text-white flex items-center justify-center">
               <FaSignInAlt className="mr-2" />
@@ -108,9 +117,7 @@ const Connexion = () => {
             <p className="text-green-100 mt-1">Accédez à votre espace personnel</p>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleLogin} className="p-6 space-y-5">
-            {/* Email */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                 <FaEnvelope className="w-4 h-4" />
@@ -125,7 +132,6 @@ const Connexion = () => {
               />
             </div>
 
-            {/* Password */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                 <FaLock className="w-4 h-4" />
@@ -141,7 +147,6 @@ const Connexion = () => {
               />
             </div>
 
-            {/* Forgot Password */}
             <div className="text-right">
               <a 
                 href="/mot-de-passe-oublie" 
@@ -151,7 +156,6 @@ const Connexion = () => {
               </a>
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
@@ -164,14 +168,12 @@ const Connexion = () => {
               {isLoading ? 'Connexion en cours...' : 'Se connecter'}
             </button>
 
-            {/* Divider */}
             <div className="flex items-center">
               <div className="flex-grow border-t border-gray-300"></div>
               <span className="mx-4 text-gray-500">ou</span>
               <div className="flex-grow border-t border-gray-300"></div>
             </div>
 
-            {/* Google Login */}
             <button
               type="button"
               onClick={handleGoogleLogin}
@@ -186,7 +188,6 @@ const Connexion = () => {
               Continuer avec Google
             </button>
 
-            {/* Messages d'erreur */}
             {erreur && (
               <div className="p-3 bg-red-50 text-red-700 rounded-lg border border-red-200">
                 {erreur}
@@ -194,7 +195,6 @@ const Connexion = () => {
             )}
           </form>
 
-          {/* Footer */}
           <div className="px-6 py-4 bg-gray-50 text-center border-t border-gray-100">
             <p className="text-sm text-gray-600">
               Pas encore de compte ?{' '}
@@ -209,7 +209,6 @@ const Connexion = () => {
           </div>
         </div>
 
-        {/* Info supplémentaire */}
         <div className="mt-6 text-center text-sm text-gray-500">
           <p>En vous connectant, vous acceptez nos conditions d'utilisation.</p>
         </div>
