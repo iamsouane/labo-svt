@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useUser } from "../../hooks/useUser";
 import { supabase } from "../../lib/supabaseClient";
-import { 
-  FaChartLine, 
-  FaFlask, 
-  FaChalkboardTeacher, 
-  FaUserGraduate, 
-  FaCog, 
+import {
+  FaChartLine,
+  FaFlask,
+  FaChalkboardTeacher,
+  FaUserGraduate,
+  FaCog,
   FaSignOutAlt,
   FaSpinner,
   FaUsersCog,
@@ -42,15 +42,38 @@ ChartJS.register(
   Filler
 );
 
+interface Classe {
+  id: number;
+  nom: string;
+  codeClasse: string;
+  dateCreation: string;
+}
+
+interface Professeur {
+  id: string;
+  nom: string;
+  prenom: string;
+  role: string;
+  created_at: string;
+}
+
+interface Eleve {
+  id: string;
+  nom: string;
+  prenom: string;
+  role: string;
+  created_at: string;
+}
+
 // Fonction utilitaire pour remplir les dates manquantes
 function fillMissingDates(data: any[], startDate: Date, endDate: Date) {
   const result = [];
   const currentDate = new Date(startDate);
-  
+
   while (currentDate <= endDate) {
     const dateStr = currentDate.toISOString().split('T')[0];
     const existingData = data.find(item => item.date === dateStr);
-    
+
     result.push(existingData || {
       date: dateStr,
       connexions: 0,
@@ -60,7 +83,7 @@ function fillMissingDates(data: any[], startDate: Date, endDate: Date) {
 
     currentDate.setDate(currentDate.getDate() + 1);
   }
-  
+
   return result;
 }
 
@@ -68,7 +91,7 @@ function fillMissingDates(data: any[], startDate: Date, endDate: Date) {
 function formatDateLabels(data: any[], timeRange: string) {
   return data.map(item => {
     const date = new Date(item.date);
-    
+
     if (timeRange === '12months') {
       return date.toLocaleDateString('fr-FR', { month: 'short' });
     } else if (timeRange === '30days' || data.length > 14) {
@@ -122,7 +145,7 @@ const AdminDashboard = () => {
               Admin Panel
             </h1>
           )}
-          <button 
+          <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             className="p-1 rounded-full hover:bg-green-700"
           >
@@ -182,7 +205,7 @@ const AdminDashboard = () => {
 
         <div className="p-4 border-t border-green-700">
           <div className="text-sm mb-2 text-green-200">
-            {isSidebarOpen && `Connecté en tant que ${user?.prenom} ${user?.nom}`} 
+            {isSidebarOpen && `Connecté en tant que ${user?.prenom} ${user?.nom}`}
           </div>
           <button
             onClick={logout}
@@ -232,7 +255,7 @@ const DashboardOverview = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
+
         // 1. Fetch basic stats
         const [
           { count: eleves },
@@ -251,7 +274,7 @@ const DashboardOverview = () => {
         // 2. Calculate date range
         const endDate = new Date();
         const startDate = new Date();
-        
+
         if (timeRange === '7days') {
           startDate.setDate(endDate.getDate() - 7);
         } else if (timeRange === '12months') {
@@ -354,27 +377,27 @@ const DashboardOverview = () => {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-        <StatCard 
+        <StatCard
           icon={<FaUserGraduate className="text-2xl" />}
           title="Élèves inscrits"
           value={stats.eleves}
         />
-        <StatCard 
+        <StatCard
           icon={<FaChalkboardTeacher className="text-2xl" />}
           title="Professeurs"
           value={stats.professeurs}
         />
-        <StatCard 
+        <StatCard
           icon={<FaFlask className="text-2xl" />}
           title="Simulations"
           value={stats.simulations}
         />
-        <StatCard 
+        <StatCard
           icon={<FaSchool className="text-2xl" />}
           title="Classes"
           value={stats.classes}
         />
-        <StatCard 
+        <StatCard
           icon={<FaChartLine className="text-2xl" />}
           title="Connexions (30j)"
           value={stats.connexions}
@@ -389,7 +412,7 @@ const DashboardOverview = () => {
                 <BsGraphUp className="mr-2 text-green-600" />
                 Activité récente
               </h3>
-              <select 
+              <select
                 className="border rounded-lg px-3 py-1 text-sm bg-white"
                 value={timeRange}
                 onChange={handleTimeRangeChange}
@@ -399,10 +422,10 @@ const DashboardOverview = () => {
                 <option value="12months">12 derniers mois</option>
               </select>
             </div>
-            
+
             <div className="h-64">
-              <Line 
-                data={activityData} 
+              <Line
+                data={activityData}
                 options={{
                   responsive: true,
                   maintainAspectRatio: false,
@@ -441,7 +464,7 @@ const DashboardOverview = () => {
                       borderWidth: 2
                     }
                   }
-                }} 
+                }}
               />
             </div>
           </div>
@@ -458,13 +481,13 @@ const DashboardOverview = () => {
   );
 };
 
-const StatCard = ({ 
-  icon, 
-  title, 
+const StatCard = ({
+  icon,
+  title,
   value
-}: { 
-  icon: React.ReactNode, 
-  title: string, 
+}: {
+  icon: React.ReactNode,
+  title: string,
   value: number
 }) => {
   return (
@@ -488,33 +511,33 @@ const QuickActions = () => {
         Actions rapides
       </h3>
       <div className="grid grid-cols-1 gap-3">
-        <button 
+        <button
           className="flex items-center p-3 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors"
-          onClick={() => window.location.href = '/admin/professeurs/ajouter'}
+          onClick={() => window.location.href = '/admin/creerClasse'}
         >
           <FaUserPlus className="mr-2" />
-          Ajouter un professeur
+          Creer une classe
         </button>
-        <button 
+        <button
           className="flex items-center p-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
-          onClick={() => window.location.href = '/admin/simulations/creer'}
+          onClick={() => window.location.href = '/admin/creerSimulation'}
         >
           <FaPlus className="mr-2" />
           Créer une simulation
         </button>
-        <button 
+        <button
           className="flex items-center p-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors"
           onClick={() => window.location.href = '/admin/rapports'}
         >
           <FaFileAlt className="mr-2" />
           Générer un rapport
         </button>
-        <button 
+        <button
           className="flex items-center p-3 bg-amber-50 text-amber-700 rounded-lg hover:bg-amber-100 transition-colors"
-          onClick={() => window.location.href = '/admin/parametres'}
+          onClick={() => window.location.href = '/admin/classeDetail'}
         >
-          <FaCog className="mr-2" />
-          Paramètres avancés
+          <FaUsersCog className="mr-2" />
+          Details de la classe
         </button>
       </div>
     </div>
@@ -523,7 +546,7 @@ const QuickActions = () => {
 
 const RecentActivities = ({ activities }: { activities: any[] }) => {
   const getActivityIcon = (type: string) => {
-    switch(type) {
+    switch (type) {
       case 'simulation':
         return <FaFlask className="text-blue-500" />;
       case 'inscription':
@@ -638,12 +661,322 @@ const StudentsManagement = () => (
   </div>
 );
 
-const ClassesManagement = () => (
-  <div className="bg-white rounded-xl shadow p-6">
-    <h3 className="text-lg font-semibold mb-4">Gestion des classes</h3>
-    <p>Interface de gestion des classes à implémenter</p>
-  </div>
-);
+const ClassesManagement = () => {
+  const [classes, setClasses] = useState<Classe[]>([]);
+  const [selectedClasse, setSelectedClasse] = useState<Classe | null>(null);
+  const [professeurPrincipal, setProfesseurPrincipal] = useState<Professeur | null>(null);
+  const [eleves, setEleves] = useState<Eleve[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchClasses = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("classe")
+        .select("id, nom, code_classe, date_creation")
+        .order("nom", { ascending: true });
+
+      if (error) {
+        console.error("Erreur chargement classes :", error.message);
+      } else if (data) {
+        const formatted = data.map((c) => ({
+          id: c.id,
+          nom: c.nom,
+          codeClasse: c.code_classe,
+          dateCreation: c.date_creation,
+        }));
+        setClasses(formatted);
+      }
+      setLoading(false);
+    };
+    fetchClasses();
+  }, []);
+
+  const handleVoirClasse = async (classeId: number) => {
+    setLoading(true);
+    const { data: classeData, error: classeError } = await supabase
+      .from("classe")
+      .select("id, nom, code_classe, date_creation")
+      .eq("id", classeId)
+      .single();
+
+    if (classeError || !classeData) {
+      console.error("Erreur chargement classe :", classeError?.message);
+      setSelectedClasse(null);
+      setProfesseurPrincipal(null);
+      setEleves([]);
+      setLoading(false);
+      return;
+    }
+
+    setSelectedClasse({
+      id: classeData.id,
+      nom: classeData.nom,
+      codeClasse: classeData.code_classe,
+      dateCreation: classeData.date_creation,
+    });
+
+    await Promise.all([
+      fetchProfesseurPrincipal(classeData.id),
+      fetchEleves(classeData.id)
+    ]);
+
+    setLoading(false);
+  };
+
+  const fetchProfesseurPrincipal = async (classeId: number) => {
+    const { data: cpData, error: cpError } = await supabase
+      .from("classe_professeur")
+      .select("professeur_id")
+      .eq("classe_id", classeId)
+      .eq("is_principal", true)
+      .single();
+
+    if (cpError || !cpData) {
+      console.error("Professeur principal non trouvé :", cpError?.message);
+      setProfesseurPrincipal(null);
+      return;
+    }
+
+    const profId = cpData.professeur_id;
+    const { data: profData, error: profError } = await supabase
+      .from("utilisateur")
+      .select("id, nom, prenom, role, created_at")
+      .eq("id", profId)
+      .single();
+
+    if (profError || !profData) {
+      console.error("Professeur principal non trouvé (utilisateur) :", profError?.message);
+      setProfesseurPrincipal(null);
+    } else {
+      setProfesseurPrincipal(profData);
+    }
+  };
+  interface Eleve {
+  id: string;
+  nom: string;
+  prenom: string;
+  role: string;
+  created_at: string;
+}
+
+interface Eleve {
+  id: string;
+  nom: string;
+  prenom: string;
+  role: string;
+  created_at: string;
+}
+
+const fetchEleves = async (classeId: number) => {
+  // Solution 1: Utilisation de la syntaxe recommandée par Supabase v2
+  const { data: elevesData, error: elevesError } = await supabase
+    .from("classe_eleve")
+    .select(`
+      eleve_id:utilisateur (
+        id,
+        nom,
+        prenom,
+        role,
+        created_at
+      )
+    `)
+    .eq("classe_id", classeId)
+    .order("prenom", { foreignTable: "eleve_id", ascending: true });
+
+  if (elevesError) {
+    console.error("Erreur récupération élèves :", elevesError.message);
+    setEleves([]);
+    return;
+  }
+
+  // Type assertion et vérification de sécurité
+  const eleves = (elevesData || [])
+    .map((item: any) => item.eleve_id)
+    .filter((eleve): eleve is Eleve => Boolean(eleve));
+
+  setEleves(eleves);
+};
+
+  return (
+    <div className="bg-white rounded-xl shadow p-6">
+      {loading && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl shadow-lg flex items-center space-x-3">
+            <FaSpinner className="animate-spin text-green-600 text-xl" />
+            <p className="text-gray-800">Chargement en cours...</p>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Liste des classes */}
+        <div className="lg:col-span-1 bg-white rounded-xl shadow-sm border border-gray-200">
+          <div className="bg-green-700 p-4 rounded-t-xl">
+            <h2 className="text-lg font-semibold text-white flex items-center">
+              <FaSchool className="mr-2" />
+              Liste des Classes
+            </h2>
+          </div>
+          <div className="p-4 space-y-3 max-h-[600px] overflow-y-auto">
+            {classes.length === 0 ? (
+              <div className="text-center py-6 text-gray-500">
+                Aucune classe disponible
+              </div>
+            ) : (
+              classes.map((classe) => (
+                <div
+                  key={classe.id}
+                  className={`p-3 rounded-lg border cursor-pointer transition-all ${selectedClasse?.id === classe.id
+                      ? 'border-green-500 bg-green-50'
+                      : 'border-gray-200 hover:border-green-300 hover:bg-gray-50'
+                    }`}
+                  onClick={() => handleVoirClasse(classe.id)}
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="font-medium text-gray-800">{classe.nom}</p>
+                      <p className="text-sm text-gray-500">Code: {classe.codeClasse}</p>
+                    </div>
+                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                      {new Date(classe.dateCreation).toLocaleDateString('fr-FR')}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Détails de la classe */}
+        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200">
+          {selectedClasse ? (
+            <>
+              <div className="bg-green-700 p-4 rounded-t-xl">
+                <h2 className="text-lg font-semibold text-white flex items-center">
+                  <FaSchool className="mr-2" />
+                  Détails de la Classe
+                </h2>
+              </div>
+              <div className="p-6">
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-bold text-gray-800">{selectedClasse.nom}</h3>
+                    <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                      {selectedClasse.codeClasse}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <p className="text-sm text-gray-500">Date de création</p>
+                      <p className="font-medium">
+                        {new Date(selectedClasse.dateCreation).toLocaleDateString('fr-FR', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <p className="text-sm text-gray-500">Nombre d'élèves</p>
+                      <p className="font-medium">{eleves.length}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Professeur principal */}
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3 pb-2 border-b border-gray-200 flex items-center">
+                    <FaChalkboardTeacher className="mr-2 text-green-600" />
+                    Professeur Principal
+                  </h3>
+                  {professeurPrincipal ? (
+                    <div className="flex items-center space-x-4 bg-green-50 p-4 rounded-lg border border-green-100">
+                      <div className="flex-shrink-0">
+                        <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-medium">
+                          {professeurPrincipal.prenom.charAt(0)}{professeurPrincipal.nom.charAt(0)}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-800">
+                          {professeurPrincipal.prenom} {professeurPrincipal.nom}
+                        </p>
+                        <p className="text-sm text-gray-500">Professeur principal</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-lg">
+                      Aucun professeur principal assigné à cette classe
+                    </div>
+                  )}
+                </div>
+
+                {/* Liste des élèves */}
+                <div>
+                  <div className="flex justify-between items-center mb-3 pb-2 border-b border-gray-200">
+                    <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                      <FaUserGraduate className="mr-2 text-green-600" />
+                      Liste des Élèves
+                    </h3>
+                    <span className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm">
+                      {eleves.length} élève{eleves.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  {eleves.length > 0 ? (
+                    <div className="overflow-hidden border border-gray-200 rounded-lg">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Nom
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Prénom
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Date d'inscription
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {eleves.map((eleve) => (
+                            <tr key={eleve.id} className="hover:bg-gray-50">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {eleve.nom}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {eleve.prenom}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {new Date(eleve.created_at).toLocaleDateString('fr-FR')}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="bg-gray-50 border border-gray-200 text-gray-600 p-8 rounded-lg text-center">
+                      Aucun élève inscrit dans cette classe
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="p-8 text-center">
+              <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <FaSchool className="w-10 h-10 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Sélectionnez une classe</h3>
+              <p className="text-gray-500">Choisissez une classe dans la liste pour afficher ses détails</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const PlatformSettings = () => (
   <div className="bg-white rounded-xl shadow p-6">
