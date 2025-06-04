@@ -1,6 +1,6 @@
 import React from "react";
-import Header from "../components/Header";
-import SectionFeatures from "../components/SectionFeatures";
+import Header from "../components/layout/Header";
+import SectionFeatures from "../components/features/SectionFeatures";
 
 const Home: React.FC = () => {
   return (

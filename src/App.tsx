@@ -6,41 +6,50 @@ import PolitiqueConfidentialite from "./pages/PolitiqueConfidentialite";
 import ConditionsUtilisation from "./pages/ConditionsUtilisation";
 import Inscription from "./pages/auth/Inscription";
 import Connexion from "./pages/auth/Connexion";
+
 import AdminDashboard from "./pages/admin/dashboard";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
+import CreerClasse from "./pages/admin/creerClasse";
+import ClasseDetail from "./pages/admin/classeDetail";
+
+import ProfesseurDashboard from "./pages/professeur/dashboard";
+import EleveDetail from "./pages/professeur/eleveDetail";
+
+import EleveDashboard from "./pages/eleve/dashboard"; // ✅ Nouvelle page élève
+
+import Navbar from "./components/layout/Navbar";
+import Footer from "./components/layout/Footer";
 import type { ReactNode } from "react";
 
-// Placeholders pour les pages à venir
+// Pages à venir
 const Simulations = () => <div className="p-6">Page Simulations (à venir)</div>;
 const Visualisation = () => <div className="p-6">Page Visualisation (à venir)</div>;
 
-const AdminLayout = () => {
-  return <AdminDashboard />;
-};
-
+// Layout principal avec Navbar/Footer
 interface MainLayoutProps {
   children?: ReactNode;
-  noNavbarFooter?: boolean; // Nouvelle prop pour exclure navbar/footer
+  noNavbarFooter?: boolean;
 }
 
-const MainLayout = ({ children, noNavbarFooter = false }: MainLayoutProps) => {
-  return (
-    <div className="flex flex-col min-h-screen">
-      {!noNavbarFooter && <Navbar />}
-      <main className="flex-grow pt-20 pb-10">
-        {children || <Outlet />}
-      </main>
-      {!noNavbarFooter && <Footer />}
-    </div>
-  );
-};
+const MainLayout = ({ children, noNavbarFooter = false }: MainLayoutProps) => (
+  <div className="flex flex-col min-h-screen">
+    {!noNavbarFooter && <Navbar />}
+    <main className="flex-grow pt-20 pb-10">
+      {children || <Outlet />}
+    </main>
+    {!noNavbarFooter && <Footer />}
+  </div>
+);
+
+// Layouts spécifiques
+const AdminLayout = () => <Outlet />;
+const ProfesseurLayout = () => <Outlet />;
+const EleveLayout = () => <Outlet />; // ✅ Layout pour les élèves
 
 const App = () => {
   return (
     <Router>
       <Routes>
-        {/* Routes publiques avec navbar et footer */}
+        {/* --- Routes publiques avec Navbar/Footer --- */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/apropos" element={<Apropos />} />
@@ -51,14 +60,32 @@ const App = () => {
           <Route path="/conditions" element={<ConditionsUtilisation />} />
         </Route>
 
-        {/* Routes sans navbar et footer */}
-        <Route element={<MainLayout noNavbarFooter={true} />}>
+        {/* --- Routes auth sans Navbar/Footer --- */}
+        <Route element={<MainLayout noNavbarFooter />}>
           <Route path="/connexion" element={<Connexion />} />
           <Route path="/inscription" element={<Inscription />} />
         </Route>
 
-        {/* Route admin sans navbar */}
-        <Route path="/admin/*" element={<AdminLayout />} />
+        {/* --- Routes Admin --- */}
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="creerClasse" element={<CreerClasse />} />
+          <Route path="classeDetail" element={<ClasseDetail />} />
+        </Route>
+
+        {/* --- Routes Professeur --- */}
+        <Route path="/professeur" element={<ProfesseurLayout />}>
+          <Route index element={<ProfesseurDashboard />} />
+          <Route path="dashboard" element={<ProfesseurDashboard />} />
+          <Route path="eleveDetail/:eleveId" element={<EleveDetail />} />
+        </Route>
+
+        {/* --- Routes Élève --- */}
+        <Route path="/eleve" element={<EleveLayout />}>
+          <Route index element={<EleveDashboard />} />
+          <Route path="dashboard" element={<EleveDashboard />} />
+        </Route>
       </Routes>
     </Router>
   );

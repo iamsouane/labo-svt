@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import FeatureCard from "./FeatureCard";
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from "../../lib/supabaseClient";
 import { FaFlask, FaInfoCircle, FaEnvelope } from "react-icons/fa";
 import { GiMolecule } from "react-icons/gi";
 import type { Session } from "@supabase/supabase-js";

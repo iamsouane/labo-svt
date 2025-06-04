@@ -21,27 +21,21 @@ export const TypeSimulationValues = {
 // Interfaces Utilisateurs
 // ====================
 
+// id est un UUID (string)
+// motDePasse n'existe pas (gestion via Supabase Auth)
+// email n'est pas en base utilisateur mais dans auth.users, peut être ajouté en join
 export interface Utilisateur {
-  id: number;
-  email: string;
-  motDePasse: string;
+  id: string;           // UUID (string)
+  nom?: string;
+  prenom?: string;
   role: Role;
   created_at?: string;
+  email?: string;       // optionnel, à récupérer via jointure auth.users
 }
 
-export interface Admin extends Utilisateur {
-  nom: string;
-  prenom: string;
-}
-
-export interface Professeur extends Utilisateur {
-  nom: string;
-  prenom: string;
-}
-
+export interface Admin extends Utilisateur {}
+export interface Professeur extends Utilisateur {}
 export interface Eleve extends Utilisateur {
-  nom: string;
-  prenom: string;
   classe_id?: number;
 }
 
@@ -49,13 +43,15 @@ export interface Eleve extends Utilisateur {
 // Interface Classe
 // ====================
 
+// correspond à la table "classe" en base
 export interface Classe {
   id: number;
   nom: string;
   codeClasse: string;
-  dateCreation: string;
-  professeur_id: number; // ID du professeur responsable
+  dateCreation?: string;
+  professeur_id?: string; // UUID du professeur responsable
   created_at?: string;
+  description?: string;
 }
 
 // ====================
@@ -64,12 +60,12 @@ export interface Classe {
 
 export interface Simulation {
   id: number;
-  title: string;
+  titre: string;
   description: string;
   chapitre: string;
   type: TypeSimulation;
   created_at?: string;
-  created_by?: number; // ID de l'admin qui a créé la simulation
+  created_by?: string; // UUID de l'admin qui a créé la simulation
 }
 
 // ====================
@@ -78,7 +74,7 @@ export interface Simulation {
 
 export interface ClasseEleve {
   classe_id: number;
-  eleve_id: number;
+  eleve_id: string;  // UUID
   created_at?: string;
 }
 
