@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useUser } from "../../hooks/useUser";
 import { supabase } from "../../lib/supabaseClient";
 import { 
   FaArrowLeft,
@@ -10,8 +9,6 @@ import {
   FaTimes,
   FaSearch,
   FaUsers,
-  FaUserTie,
-  FaInfoCircle,
   FaSchool
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
@@ -31,7 +28,6 @@ interface Eleve {
 }
 
 const CreerClasse = () => {
-  const { user } = useUser();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -163,7 +159,7 @@ const CreerClasse = () => {
       }
 
       toast.success("Classe créée avec succès !");
-      navigate("/admin/classes");
+      navigate("/admin/dashboard");
     } catch (error: any) {
       console.error("Erreur complète:", error);
       toast.error(`Erreur: ${error.message}`);
