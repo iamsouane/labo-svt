@@ -57,14 +57,6 @@ interface Professeur {
   created_at: string;
 }
 
-interface Eleve {
-  id: string;
-  nom: string;
-  prenom: string;
-  role: string;
-  created_at: string;
-}
-
 // Fonction utilitaire pour remplir les dates manquantes
 function fillMissingDates(data: any[], startDate: Date, endDate: Date) {
   const result = [];
